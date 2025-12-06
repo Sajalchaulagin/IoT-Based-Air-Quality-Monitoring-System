@@ -1,0 +1,281 @@
+<!-- (The website link : https://air-quality-monitoring-system.netlify.app/) -->
+
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Air Quality — Professional Dashboard</title>
+
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+<!-- Firebase v8 -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<!-- Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="title">
+      <h1><i class="fas fa-wind"></i> Air Quality — Professional Dashboard</h1>
+      <p>Real-time monitoring system with advanced analytics</p>
+    </div>
+
+    <div class="controls">
+      <div id="conn-badge" class="badge small"><i class="fas fa-circle-notch loading"></i> Connecting...</div>
+      
+      <div class="refresh-indicator" id="refresh-indicator">
+        <i class="fas fa-sync-alt refresh-icon"></i>
+        <span>Auto-refresh: <span id="refresh-countdown">5</span>s</span>
+      </div>
+
+      <div class="toggle" title="Toggle theme">
+        <label style="font-size:13px;color:var(--muted);margin-right:6px"><i class="fas fa-palette"></i> Theme</label>
+        <select id="theme-select" style="background:transparent;border:none;color:var(--text)">
+          <option value="stylish">Stylish (default)</option>
+          <option value="light">Light</option>
+          <option value="professional">Professional</option>
+          <option value="sunset">Sunset</option>
+          <option value="nature">Nature</option>
+        </select>
+      </div>
+
+      <button id="btn-1min" class="btn"><i class="fas fa-history"></i> Last Minute</button>
+      <button id="btn-refresh" class="btn"><i class="fas fa-sync-alt"></i> Refresh</button>
+      <button id="btn-buzzer" class="btn" title="Write test command to /commands/test_buzzer"><i class="fas fa-bell"></i> Test Buzzer</button>
+      <button id="btn-export" class="btn"><i class="fas fa-file-export"></i> Export</button>
+      <button id="btn-developer" class="btn"><i class="fas fa-user"></i> Developer</button>
+    </div>
+  </div>
+
+  <!-- Topic Section -->
+  <div class="topic-section">
+    <div class="topic-title">
+      <i class="fas fa-chart-line"></i> Environmental Monitoring Insights
+    </div>
+    <div class="topic-subtitle">
+      Advanced air quality tracking with real-time alerts and historical data analysis
+    </div>
+    <div class="topic-content">
+      <div class="topic-item">
+        <i class="fas fa-shield-alt"></i>
+        <h4>Health Protection</h4>
+        <p>Monitor air pollutants to safeguard public health and wellbeing</p>
+      </div>
+      <div class="topic-item">
+        <i class="fas fa-bell"></i>
+        <h4>Instant Alerts</h4>
+        <p>Real-time notifications when air quality exceeds safety thresholds</p>
+      </div>
+      <div class="topic-item">
+        <i class="fas fa-database"></i>
+        <h4>Data Analytics</h4>
+        <p>Comprehensive historical data for trend analysis and reporting</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- Furfuri Nagar Card -->
+    <section class="card" id="card-fn">
+      <div class="card-head">
+        <div class="city">
+          <div class="dot" style="background:linear-gradient(90deg,#f72585,var(--accent)); width:14px;height:14px;border-radius:50%"></div>
+          <div>
+            <div class="name">Furfuri Nagar</div>
+            <div class="loc small"><i class="fas fa-map-marker-alt"></i> Location: Furfuri Nagar</div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div id="fn-time" class="time">--:--:--</div>
+          <div style="margin-top:8px">
+            <span id="fn-status" class="status-pill status-good">Initializing</span>
+            <div class="sensor-status">
+              <span class="sensor-dot sensor-inactive" id="fn-sensor-dot"></span>
+              <span id="fn-sensor-status">Inactive</span>
+            </div>
+            <div class="last-update" id="fn-last-update">Last update: --</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="top-grid">
+        <div class="stat"><h4><i class="fas fa-thermometer-half"></i> Temperature</h4><p id="fn-temp">-- °C</p></div>
+        <div class="stat"><h4><i class="fas fa-tint"></i> Humidity</h4><p id="fn-hum">-- %</p></div>
+        <div class="stat"><h4><i class="fas fa-fire"></i> Heat index</h4><p id="fn-heat">-- °C</p></div>
+        <div class="stat"><h4><i class="fas fa-wind"></i> AQI</h4><p id="fn-aqi">--</p></div>
+      </div>
+
+      <div class="top-grid" style="margin-top:8px">
+        <div class="stat"><h4><i class="fas fa-smog"></i> CO (MQ3)</h4><p id="fn-co">-- ppm</p></div>
+        <div class="stat"><h4><i class="fas fa-cloud"></i> Smoke (MQ2)</h4><p id="fn-dust">-- ppm</p></div>
+        <div class="stat"><h4><i class="fas fa-industry"></i> AirSensor (MQ135)</h4><p id="fn-mq135">--</p></div>
+        <div class="stat"><h4><i class="fas fa-satellite-dish"></i> Status</h4><p class="small" id="fn-updated">Waiting for data</p></div>
+      </div>
+
+      <div class="notif-slot">
+        <div id="fn-notif" class="notif"><div class="title" id="fn-notif-title">No alerts</div><div class="time" id="fn-notif-time"></div></div>
+      </div>
+
+      <div class="history" id="fn-history">
+        <div class="small" style="text-align:center;padding:12px;color:var(--muted)">Waiting for data…</div>
+      </div>
+    </section>
+
+    <!-- Dholakpur Card -->
+    <section class="card" id="card-dh">
+      <div class="card-head">
+        <div class="city">
+          <div class="dot" style="background:linear-gradient(90deg,#2dd4bf,var(--accent)); width:14px;height:14px;border-radius:50%"></div>
+          <div>
+            <div class="name">Dholakpur</div>
+            <div class="loc small"><i class="fas fa-map-marker-alt"></i> Location: Dholakpur</div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div id="dh-time" class="time">--:--:--</div>
+          <div style="margin-top:8px">
+            <span id="dh-status" class="status-pill status-good">Initializing</span>
+            <div class="sensor-status">
+              <span class="sensor-dot sensor-inactive" id="dh-sensor-dot"></span>
+              <span id="dh-sensor-status">Inactive</span>
+            </div>
+            <div class="last-update" id="dh-last-update">Last update: --</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="top-grid">
+        <div class="stat"><h4><i class="fas fa-thermometer-half"></i> Temperature</h4><p id="dh-temp">-- °C</p></div>
+        <div class="stat"><h4><i class="fas fa-tint"></i> Humidity</h4><p id="dh-hum">-- %</p></div>
+        <div class="stat"><h4><i class="fas fa-fire"></i> Heat index</h4><p id="dh-heat">-- °C</p></div>
+        <div class="stat"><h4><i class="fas fa-wind"></i> AQI</h4><p id="dh-aqi">--</p></div>
+      </div>
+
+      <div class="top-grid" style="margin-top:8px">
+        <div class="stat"><h4><i class="fas fa-cloud"></i> Smoke (MQ2)</h4><p id="dh-dust">-- ppm</p></div>
+        <div class="stat"><h4><i class="fas fa-industry"></i> AirSensor (MQ135)</h4><p id="dh-mq135">--</p></div>
+        <div class="stat"><h4><i class="fas fa-smog"></i> CO</h4><p id="dh-co">N/A</p></div>
+        <div class="stat"><h4><i class="fas fa-satellite-dish"></i> Status</h4><p class="small" id="dh-updated">Waiting for data</p></div>
+      </div>
+
+      <div class="notif-slot">
+        <div id="dh-notif" class="notif"><div class="title" id="dh-notif-title">No alerts</div><div class="time" id="dh-notif-time"></div></div>
+      </div>
+
+      <div class="history" id="dh-history">
+        <div class="small" style="text-align:center;padding:12px;color:var(--muted)">Waiting for data…</div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Stats Summary Panel -->
+  <div class="stats-summary">
+    <div class="summary-card">
+      <i class="fas fa-thermometer-half"></i>
+      <h4>Average Temperature</h4>
+      <div class="value" id="avg-temp">-- °C</div>
+    </div>
+    <div class="summary-card">
+      <i class="fas fa-tint"></i>
+      <h4>Average Humidity</h4>
+      <div class="value" id="avg-hum">-- %</div>
+    </div>
+    <div class="summary-card">
+      <i class="fas fa-wind"></i>
+      <h4>Average AQI</h4>
+      <div class="value" id="avg-aqi">--</div>
+    </div>
+    <div class="summary-card">
+      <i class="fas fa-bell"></i>
+      <h4>Recent Alerts</h4>
+      <div class="value" id="alert-count">0</div>
+    </div>
+  </div>
+
+  <!-- Theme Panel -->
+  <div class="theme-panel">
+    <h3><i class="fas fa-palette"></i> Theme Selector</h3>
+    <div class="theme-grid">
+      <div class="theme-option active" data-theme="stylish">
+        <div class="theme-preview" style="background: linear-gradient(90deg, #4cc9f0, #7b61ff);"></div>
+        <div class="theme-name">Stylish</div>
+      </div>
+      <div class="theme-option" data-theme="light">
+        <div class="theme-preview" style="background: linear-gradient(90deg, #3b82f6, #8b5cf6);"></div>
+        <div class="theme-name">Light</div>
+      </div>
+      <div class="theme-option" data-theme="professional">
+        <div class="theme-preview" style="background: linear-gradient(90deg, #6366f1, #8b5cf6);"></div>
+        <div class="theme-name">Professional</div>
+      </div>
+      <div class="theme-option" data-theme="sunset">
+        <div class="theme-preview" style="background: linear-gradient(90deg, #ff6b6b, #ffa36c);"></div>
+        <div class="theme-name">Sunset</div>
+      </div>
+      <div class="theme-option" data-theme="nature">
+        <div class="theme-preview" style="background: linear-gradient(90deg, #52b788, #95d5b2);"></div>
+        <div class="theme-name">Nature</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Developer Profile Section -->
+  <div class="developer-profile">
+    <div class="developer-content">
+      <img src="profile.jpg" alt="Developer Photo" class="developer-photo" id="developer-photo">
+      <div class="developer-info">
+        <h2 class="developer-name" id="developer-name">MR. Chaule</h2>
+        <div class="developer-details">
+          <div class="developer-detail">
+            <i class="fas fa-graduation-cap"></i>
+            <span id="developer-qualification">BIT Student & IoT Specialist</span>
+          </div>
+          <div class="developer-detail">
+            <i class="fas fa-map-marker-alt"></i>
+            <span id="developer-location">Nepal</span>
+          </div>
+        </div>
+        <div class="social-links">
+          <a href="https://github.com/Sajalchaulagin" class="social-link" id="github-link" title="GitHub" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+          <a href="https://www.linkedin.com/in/sajal-chaulagain" class="social-link" id="linkedin-link" title="LinkedIn" target="_blank">
+            <i class="fab fa-linkedin"></i>
+          </a>
+          <a href="https://www.instagram.com/chaulagain.sajal/" class="social-link" id="instagram-link" title="Instagram" target="_blank">
+            <i class="fab fa-instagram"></i>
+          </a>
+          <a href="https://www.facebook.com/sajal.chaulagain.5" class="social-link" id="facebook-link" title="Facebook" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="copyright">
+      <p>&copy;  Air Quality Monitoring System. All rights reserved. | Developed by <strong>MR. Chaule</strong></p>
+    </div>
+  </div>
+</div>
+
+<!-- modal for last 1 minute -->
+<div id="modal" class="modal-back">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div style="display:flex;align-items:center;gap:12px">
+      <h3><i class="fas fa-history"></i> Last 1 Minute Readings</h3>
+      <button id="close-modal" class="btn close" style="margin-left:auto"><i class="fas fa-times"></i> Close</button>
+    </div>
+    <div style="margin-top:12px" id="modal-content">Loading…</div>
+  </div>
+</div>
+<script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+DHT vcc ---> ESP 3v3
+ DHT GND ---> ESP GND
+DHT Data ---> ESP D4
+
+MQ3 VCC ---> ESP 3v3
+MQ3 GND ---> ESP GND
+MQ3 A0 ---> ESP D34
+
+MQ2 VCC ---> ESP 3v3
+MQ2 GND ---> ESP GND
+MQ2 A0 ---> ESP GIPO36(vp)
+
+MQ135 VCC ---> ESP 3v3
+MQ135 GND ---> ESP GND
+MQ135 A0 ---> ESP GIPO35(D35)
+
+
+in 2nd(Sender_2) esp32 I've assamble
+ DHT vcc ---> ESP 3v3
+ DHT GND ---> ESP GND
+DHT Data ---> ESP D14
+
+MQ2 VCC ---> ESP 3v3
+MQ2 GND ---> ESP GND
+MQ2 A0 ---> ESP GIPO36(vp)
+
+MQ135 VCC ---> ESP 3v3
+MQ135 GND ---> ESP GND
+MQ135 A0 ---> ESP GIPO35(D35)
+
+
+
+in 3rd(Receiver) esp32 I've assemble 
+Buzzer vcc ---> ESP GIPO25(D25)
+Buzzer GND ---> ESP GND
+
+LED Anode(+) ---> ESP GIPO26(D26)
+LED Cathode(-) --->ESP GND
